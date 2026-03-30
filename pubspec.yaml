@@ -1,0 +1,13 @@
+name: essential_core
+description: Shared foundational models and serialization contracts for reusable Dart code.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.2.1
+
+dependencies:
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.26.3
