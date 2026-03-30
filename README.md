@@ -1,6 +1,6 @@
 # essential_core
 
-[![Dart CI](https://github.com/insinfo/essential_core/actions/workflows/dart_ci.yml/badge.svg)](https://github.com/insinfo/essential_core/actions/workflows/dart_ci.yml)
+[![Dart CI](https://github.com/insinfo/essential_core/actions/workflows/dart_ci.yml/badge.svg?branch=main)](https://github.com/insinfo/essential_core/actions/workflows/dart_ci.yml)
 
 `essential_core` is a small, framework-agnostic Dart package with reusable
 models, filters, serialization contracts, string/set extensions, and utility
