@@ -1,6 +1,6 @@
 name: essential_core
 description: Shared foundational models, filters, extensions, and serialization contracts for reusable Dart code.
-version: 1.0.0
+version: 1.1.0
 homepage: https://github.com/insinfo/essential_core
 repository: https://github.com/insinfo/essential_core
 issue_tracker: https://github.com/insinfo/essential_core/issues

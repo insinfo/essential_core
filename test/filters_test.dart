@@ -48,6 +48,26 @@ void main() {
   });
 
   group('Filters', () {
+    test('state getters reflect configured values', () {
+      final filters = Filters(
+        limit: 10,
+        offset: 5,
+        searchString: 'ana',
+        orderFields: const <FilterOrderField>[
+          FilterOrderField(field: 'name', direction: 'asc'),
+        ],
+        additionalFilters: {
+          'status': 'active',
+        },
+      );
+
+      expect(filters.isLimit, isTrue);
+      expect(filters.isOffset, isTrue);
+      expect(filters.isSearch, isTrue);
+      expect(filters.isOrder, isTrue);
+      expect(filters.hasAdditionalFilters, isTrue);
+    });
+
     test('toMap and getParams expose reserved and custom values', () {
       final filters = Filters(
         limit: 20,
@@ -236,6 +256,82 @@ void main() {
       expect(filters.orderDir, 'desc');
       expect(filters.orderFields, hasLength(1));
       expect(filters.orderFields.first.field, 'pontuacao_final');
+    });
+
+    test('setSingleOrder clears order state when field is null or blank', () {
+      final filters = Filters(
+        orderBy: 'createdAt',
+        orderDir: 'asc',
+        orderFields: const <FilterOrderField>[
+          FilterOrderField(field: 'createdAt', direction: 'asc'),
+        ],
+      );
+
+      filters.setSingleOrder(null);
+
+      expect(filters.orderBy, isNull);
+      expect(filters.orderDir, isNull);
+      expect(filters.orderFields, isEmpty);
+
+      filters.setSingleOrder('   ');
+
+      expect(filters.orderBy, isNull);
+      expect(filters.orderDir, isNull);
+      expect(filters.orderFields, isEmpty);
+    });
+
+    test('setOrderFields ignores blank field names and syncs primary order',
+        () {
+      final filters = Filters();
+
+      filters.setOrderFields(const <FilterOrderField>[
+        FilterOrderField(field: 'name', direction: 'asc'),
+        FilterOrderField(field: '   ', direction: 'desc'),
+      ]);
+
+      expect(filters.orderFields, hasLength(1));
+      expect(filters.orderBy, 'name');
+      expect(filters.orderDir, 'asc');
+    });
+
+    test('public helper methods support parsing and conditional mapping', () {
+      final filters = Filters();
+      final map = <String, dynamic>{};
+
+      filters.addToMapIfNotNull(map, 'status', 'active');
+      filters.addToMapIfNotNull(map, 'ignored', null);
+
+      final parsedOrderFields = filters.parseOrderFields([
+        {
+          'field': 'createdAt',
+          'direction': 'desc',
+        },
+        {
+          'field': '   ',
+          'direction': 'asc',
+        },
+      ]);
+
+      expect(map, {
+        'status': 'active',
+      });
+      expect(parsedOrderFields, hasLength(1));
+      expect(parsedOrderFields.first.field, 'createdAt');
+      expect(
+        filters.parseAdditionalFilters('{"status":"active"}'),
+        {'status': 'active'},
+      );
+      expect(filters.toNullableInt(12), 12);
+      expect(filters.toNullableInt('34'), 34);
+      expect(filters.toNullableInt('x'), isNull);
+      expect(filters.toNullableString('abc'), 'abc');
+      expect(filters.toNullableString(123), isNull);
+      expect(
+        filters.toNullableBool({'enabled': 'TrUe'}, 'enabled'),
+        isTrue,
+      );
+      expect(filters.toNullableBool({}, 'enabled'), isNull);
+      expect(Filters.reservedKeys, contains('limit'));
     });
   });
 }

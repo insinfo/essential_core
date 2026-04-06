@@ -11,5 +11,5 @@ export 'src/models/serialize_base.dart';
 export 'src/extensions/iterable_extension.dart';
 export 'src/extensions/string_extensions.dart';
 
-export 'src/utils/core_utils.dart';
 export 'src/utils/essential_core_utils.dart';
+

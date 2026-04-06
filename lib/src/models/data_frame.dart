@@ -1,3 +1,5 @@
+// ignore_for_file: unintended_html_in_doc_comment
+
 import 'dart:collection';
 import 'dart:convert';
 
@@ -11,10 +13,19 @@ class DataFrame<T> extends ListBase<T> {
   /// Total amount of records available in the original data source.
   int totalRecords = 0;
 
-  DataFrame({
-    required this.items,
-    required this.totalRecords,
-  });
+  /// Optional error payload associated with the current frame.
+  dynamic error = '';
+
+  /// Template context exposing this frame as the implicit value for UI
+  /// template outlet bindings.
+  late Map<String, dynamic> templateOutletContext;
+
+  /// Creates a frame with [items], [totalRecords], and an optional [error]
+  /// payload.
+  DataFrame(
+      {required this.items, required this.totalRecords, this.error = ''}) {
+    templateOutletContext = {'\$implicit': this};
+  }
 
   /// Creates an empty [DataFrame].
   factory DataFrame.newClear() => DataFrame<T>(items: [], totalRecords: 0);
@@ -97,6 +108,7 @@ class DataFrame<T> extends ListBase<T> {
     return jsonEncode(toMap(), toEncodable: _customJsonEncode);
   }
 
+  /// Returns a debug-friendly string representation of this frame.
   @override
   String toString() {
     return 'instanceof DataFrame | ${toJson()}';
@@ -119,42 +131,51 @@ class DataFrame<T> extends ListBase<T> {
     return index;
   }
 
+  /// Returns the number of items currently stored in this frame.
   @override
   int get length => items.length;
 
+  /// Resizes the underlying item collection to [maxLen].
   @override
   set length(int maxLen) {
     items.length = maxLen;
   }
 
+  /// Returns the item at [index].
   @override
   T operator [](int index) => items[index];
 
+  /// Replaces the item at [index] with [value].
   @override
   void operator []=(int index, T value) {
     items[index] = value;
   }
 
+  /// Appends [element] to the end of the frame.
   @override
   void add(T element) {
     items.add(element);
   }
 
+  /// Appends all values from [iterable] to the end of the frame.
   @override
   void addAll(Iterable<T> iterable) {
     items.addAll(iterable);
   }
 
+  /// Inserts [element] into the frame at [index].
   @override
   void insert(int index, T element) {
     items.insert(index, element);
   }
 
+  /// Removes and returns the item at [index].
   @override
   T removeAt(int index) {
     return items.removeAt(index);
   }
 
+  /// Removes the first occurrence of [element] from the frame.
   @override
   bool remove(Object? element) {
     return items.remove(element);

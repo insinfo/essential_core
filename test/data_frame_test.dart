@@ -38,6 +38,19 @@ class MockModel implements SerializeBase {
 }
 
 void main() {
+  group('DataFrame constructor', () {
+    test('initializes error and template outlet context', () {
+      final df = DataFrame<MockModel>(
+        items: [MockModel(1, 'Jon')],
+        totalRecords: 1,
+        error: 'network-error',
+      );
+
+      expect(df.error, 'network-error');
+      expect(df.templateOutletContext['\$implicit'], same(df));
+    });
+  });
+
   group('DataFrame.newClear', () {
     test('starts empty', () {
       final df = DataFrame<MockModel>.newClear();

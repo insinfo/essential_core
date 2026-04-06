@@ -59,7 +59,8 @@ class Filters {
   /// Map key used for [searchInFields].
   static const kSearchInFields = 'searchInFields';
 
-  static const Set<String> _reservedKeys = <String>{
+  /// Keys reserved by the core filtering model.
+  static const Set<String> reservedKeys = <String>{
     kLimit,
     kOffset,
     kSearch,
@@ -112,6 +113,7 @@ class Filters {
   /// Whether custom additional filters are present.
   bool get hasAdditionalFilters => additionalFilters.isNotEmpty;
 
+  /// Creates a filter model and normalizes the current sorting state.
   Filters({
     this.limit = 12,
     this.offset = 0,
@@ -126,7 +128,7 @@ class Filters {
         additionalFilters = additionalFilters != null
             ? Map<String, dynamic>.from(additionalFilters)
             : <String, dynamic>{} {
-    _syncOrderState();
+    syncOrderState();
   }
 
   /// Creates a [Filters] object from a serialized map.
@@ -144,7 +146,7 @@ class Filters {
     orderFields = List<FilterOrderField>.from(filters.orderFields);
     searchInFields = List<FilterSearchField>.from(filters.searchInFields);
     additionalFilters = Map<String, dynamic>.from(filters.additionalFilters);
-    _syncOrderState();
+    syncOrderState();
   }
 
   /// Replaces the sorting criteria list.
@@ -152,7 +154,14 @@ class Filters {
     orderFields = List<FilterOrderField>.from(
       fields.where((field) => field.field.trim().isNotEmpty),
     );
-    _syncOrderState();
+    syncOrderState();
+  }
+
+  /// Adds [key] to [map] only when [value] is not `null`.
+  void addToMapIfNotNull(Map<String, dynamic> map, String key, dynamic value) {
+    if (value != null) {
+      map[key] = value;
+    }
   }
 
   /// Configures a single sorting criterion.
@@ -170,7 +179,7 @@ class Filters {
     orderFields = <FilterOrderField>[
       FilterOrderField(field: field, direction: direction),
     ];
-    _syncOrderState();
+    syncOrderState();
   }
 
   /// Adds a search target field.
@@ -237,24 +246,24 @@ class Filters {
   /// object to remain generic while still supporting domain-specific query
   /// parameters externally.
   void fillFromMap(Map<String, dynamic> map) {
-    additionalFilters = _parseAdditionalFilters(map[kAdditionalFilters]);
+    additionalFilters = parseAdditionalFilters(map[kAdditionalFilters]);
 
     if (map.containsKey(kLimit) && map[kLimit] != null) {
-      limit = _toNullableInt(map[kLimit]);
+      limit = toNullableInt(map[kLimit]);
     }
     if (map.containsKey(kOffset) && map[kOffset] != null) {
-      offset = _toNullableInt(map[kOffset]);
+      offset = toNullableInt(map[kOffset]);
     }
     if (map.containsKey(kSearch) && map[kSearch] != null) {
-      searchString = _toNullableString(map[kSearch]);
+      searchString = toNullableString(map[kSearch]);
     }
     if (map.containsKey(kOrderBy) && map[kOrderBy] != null) {
-      orderBy = _toNullableString(map[kOrderBy]);
+      orderBy = toNullableString(map[kOrderBy]);
     }
     if (map.containsKey(kOrderDir) && map[kOrderDir] != null) {
-      orderDir = _toNullableString(map[kOrderDir]);
+      orderDir = toNullableString(map[kOrderDir]);
     }
-    orderFields = _parseOrderFields(map[kOrderFields]);
+    orderFields = parseOrderFields(map[kOrderFields]);
     if (map.containsKey(kSearchInFields) && map[kSearchInFields] != null) {
       final rawValue = map[kSearchInFields];
       if (rawValue is String && rawValue.trim().isNotEmpty) {
@@ -275,16 +284,17 @@ class Filters {
     }
 
     for (final entry in map.entries) {
-      if (_reservedKeys.contains(entry.key) || entry.value == null) {
+      if (reservedKeys.contains(entry.key) || entry.value == null) {
         continue;
       }
       additionalFilters[entry.key] = entry.value;
     }
 
-    _syncOrderState();
+    syncOrderState();
   }
 
-  List<FilterOrderField> _parseOrderFields(dynamic rawValue) {
+  /// Parses sorting criteria from a JSON string or a list of maps.
+  List<FilterOrderField> parseOrderFields(dynamic rawValue) {
     if (rawValue is String && rawValue.trim().isNotEmpty) {
       final decoded = jsonDecode(rawValue);
       if (decoded is List) {
@@ -307,7 +317,8 @@ class Filters {
     return <FilterOrderField>[];
   }
 
-  Map<String, dynamic> _parseAdditionalFilters(dynamic rawValue) {
+  /// Parses custom filter values from a map or a JSON-encoded map.
+  Map<String, dynamic> parseAdditionalFilters(dynamic rawValue) {
     if (rawValue is Map) {
       return Map<String, dynamic>.from(rawValue);
     }
@@ -320,7 +331,8 @@ class Filters {
     return <String, dynamic>{};
   }
 
-  int? _toNullableInt(dynamic value) {
+  /// Converts [value] into an `int` when possible.
+  int? toNullableInt(dynamic value) {
     if (value == null) {
       return null;
     }
@@ -333,7 +345,16 @@ class Filters {
     return null;
   }
 
-  String? _toNullableString(dynamic value) {
+  /// Reads a boolean value from [map] using [key] when present.
+  bool? toNullableBool(Map<String, dynamic> map, String key) {
+    if (map.containsKey(key) && map[key] != null) {
+      return map[key].toString().toLowerCase() == 'true';
+    }
+    return null;
+  }
+
+  /// Returns [value] when it is already a `String`.
+  String? toNullableString(dynamic value) {
     if (value == null) {
       return null;
     }
@@ -343,7 +364,8 @@ class Filters {
     return null;
   }
 
-  void _syncOrderState() {
+  /// Keeps [orderFields], [orderBy], and [orderDir] synchronized.
+  void syncOrderState() {
     if (orderFields.isEmpty) {
       if (orderBy != null && orderBy!.trim().isNotEmpty) {
         orderFields = <FilterOrderField>[

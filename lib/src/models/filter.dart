@@ -1,3 +1,5 @@
+//C:\MyDartProjects\essential_core\lib\src\models\filter.dart
+
 /// Represents a single generic filter entry for list, search, or query APIs.
 class Filter {
   /// Filter key or field name.
