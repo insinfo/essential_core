@@ -127,7 +127,7 @@ class Filters {
             : <FilterOrderField>[],
         additionalFilters = additionalFilters != null
             ? Map<String, dynamic>.from(additionalFilters)
-            : <String, dynamic>{} {}
+            : <String, dynamic>{};
 
   /// Creates a [Filters] object from a serialized map.
   Filters.fromMap(Map<String, dynamic> map) {
