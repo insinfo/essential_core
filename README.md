@@ -29,6 +29,8 @@ Then install dependencies:
 dart pub get
 ```
 
+This package targets Dart 3.6 or newer within the 3.x line.
+
 ## Usage
 
 Import the package entrypoint:
