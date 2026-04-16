@@ -20,7 +20,7 @@ Add the package to your project:
 
 ```yaml
 dependencies:
-  essential_core: ^1.0.0
+  essential_core: ^1.2.0
 ```
 
 Then install dependencies:
@@ -58,6 +58,29 @@ filters.addSearchInField(
 
 final queryParams = filters.getParams();
 ```
+
+Use simple sorting for datatable-style flows:
+
+```dart
+final filters = Filters(
+  orderBy: 'createdAt',
+  orderDir: 'desc',
+);
+```
+
+Use `orderFields` only for advanced multi-field sorting flows:
+
+```dart
+final filters = Filters(
+  orderFields: const [
+    FilterOrderField(field: 'priority', direction: 'desc'),
+    FilterOrderField(field: 'createdAt', direction: 'asc'),
+  ],
+);
+```
+
+`orderBy`/`orderDir` and `orderFields` are intentionally independent and are no
+longer synchronized automatically.
 
 Work with paginated payloads:
 
@@ -102,7 +125,7 @@ Use the exported helpers:
 final normalized = 'Informação Útil'.withoutAccents;
 final contains = 'Essential Core'.containsIgnoreCase('core');
 final masked = EssentialCoreUtils.hidePartsOfString('1234567890');
-final validCpf = CoreUtils.validarCPF('529.982.247-25');
+final validCpf = EssentialCoreUtils.validarCPF('529.982.247-25');
 ```
 
 ## Public API
@@ -111,10 +134,10 @@ final validCpf = CoreUtils.validarCPF('529.982.247-25');
 - `SerializeBase`: contract used by serializable domain models.
 - `Filter`: generic key/operator/value filter entry.
 - `FilterSearchField`: search-field descriptor for UI and APIs.
-- `Filters`: query object with pagination, sort, search, and custom filters.
+- `Filters`: query object with pagination, simple sorting, advanced sorting, search, and custom filters.
 - `StringExtensions` and `DiacriticsAwareString`: text normalization helpers.
 - `SetExtension`: set replacement helpers.
-- `CoreUtils` and `EssentialCoreUtils`: parsing, validation, masking, and text helpers.
+- `EssentialCoreUtils`: parsing, validation, masking, and text helpers.
 
 ## Quality Checks
 

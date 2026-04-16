@@ -99,7 +99,7 @@ class Filters {
   Map<String, dynamic> additionalFilters = <String, dynamic>{};
 
   /// Whether sorting is currently configured.
-  bool get isOrder => orderFields.isNotEmpty || orderBy != null;
+  bool get isOrder => orderBy != null;
 
   /// Whether a non-empty free-text search is currently configured.
   bool get isSearch => searchString != null && searchString?.trim() != '';
@@ -127,9 +127,7 @@ class Filters {
             : <FilterOrderField>[],
         additionalFilters = additionalFilters != null
             ? Map<String, dynamic>.from(additionalFilters)
-            : <String, dynamic>{} {
-    syncOrderState();
-  }
+            : <String, dynamic>{} {}
 
   /// Creates a [Filters] object from a serialized map.
   Filters.fromMap(Map<String, dynamic> map) {
@@ -146,7 +144,6 @@ class Filters {
     orderFields = List<FilterOrderField>.from(filters.orderFields);
     searchInFields = List<FilterSearchField>.from(filters.searchInFields);
     additionalFilters = Map<String, dynamic>.from(filters.additionalFilters);
-    syncOrderState();
   }
 
   /// Replaces the sorting criteria list.
@@ -154,7 +151,6 @@ class Filters {
     orderFields = List<FilterOrderField>.from(
       fields.where((field) => field.field.trim().isNotEmpty),
     );
-    syncOrderState();
   }
 
   /// Adds [key] to [map] only when [value] is not `null`.
@@ -162,24 +158,6 @@ class Filters {
     if (value != null) {
       map[key] = value;
     }
-  }
-
-  /// Configures a single sorting criterion.
-  void setSingleOrder(
-    String? field, {
-    String direction = 'desc',
-  }) {
-    if (field == null || field.trim().isEmpty) {
-      orderFields = <FilterOrderField>[];
-      orderBy = null;
-      orderDir = null;
-      return;
-    }
-
-    orderFields = <FilterOrderField>[
-      FilterOrderField(field: field, direction: direction),
-    ];
-    syncOrderState();
   }
 
   /// Adds a search target field.
@@ -289,8 +267,6 @@ class Filters {
       }
       additionalFilters[entry.key] = entry.value;
     }
-
-    syncOrderState();
   }
 
   /// Parses sorting criteria from a JSON string or a list of maps.
@@ -362,24 +338,5 @@ class Filters {
       return value;
     }
     return null;
-  }
-
-  /// Keeps [orderFields], [orderBy], and [orderDir] synchronized.
-  void syncOrderState() {
-    if (orderFields.isEmpty) {
-      if (orderBy != null && orderBy!.trim().isNotEmpty) {
-        orderFields = <FilterOrderField>[
-          FilterOrderField(
-            field: orderBy!,
-            direction: orderDir ?? 'desc',
-          ),
-        ];
-      }
-      return;
-    }
-
-    final primaryOrder = orderFields.first;
-    orderBy = primaryOrder.field;
-    orderDir = primaryOrder.direction;
   }
 }

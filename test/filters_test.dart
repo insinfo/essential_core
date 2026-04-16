@@ -53,6 +53,8 @@ void main() {
         limit: 10,
         offset: 5,
         searchString: 'ana',
+        orderBy: 'name',
+        orderDir: 'asc',
         orderFields: const <FilterOrderField>[
           FilterOrderField(field: 'name', direction: 'asc'),
         ],
@@ -247,42 +249,12 @@ void main() {
       });
     });
 
-    test('setSingleOrder keeps legacy and multi-order state in sync', () {
-      final filters = Filters();
-
-      filters.setSingleOrder('pontuacao_final', direction: 'desc');
-
-      expect(filters.orderBy, 'pontuacao_final');
-      expect(filters.orderDir, 'desc');
-      expect(filters.orderFields, hasLength(1));
-      expect(filters.orderFields.first.field, 'pontuacao_final');
-    });
-
-    test('setSingleOrder clears order state when field is null or blank', () {
+    test('setOrderFields ignores blank field names without syncing orderBy',
+        () {
       final filters = Filters(
         orderBy: 'createdAt',
-        orderDir: 'asc',
-        orderFields: const <FilterOrderField>[
-          FilterOrderField(field: 'createdAt', direction: 'asc'),
-        ],
+        orderDir: 'desc',
       );
-
-      filters.setSingleOrder(null);
-
-      expect(filters.orderBy, isNull);
-      expect(filters.orderDir, isNull);
-      expect(filters.orderFields, isEmpty);
-
-      filters.setSingleOrder('   ');
-
-      expect(filters.orderBy, isNull);
-      expect(filters.orderDir, isNull);
-      expect(filters.orderFields, isEmpty);
-    });
-
-    test('setOrderFields ignores blank field names and syncs primary order',
-        () {
-      final filters = Filters();
 
       filters.setOrderFields(const <FilterOrderField>[
         FilterOrderField(field: 'name', direction: 'asc'),
@@ -290,8 +262,10 @@ void main() {
       ]);
 
       expect(filters.orderFields, hasLength(1));
-      expect(filters.orderBy, 'name');
-      expect(filters.orderDir, 'asc');
+      expect(filters.orderFields.first.field, 'name');
+      expect(filters.orderFields.first.direction, 'asc');
+      expect(filters.orderBy, 'createdAt');
+      expect(filters.orderDir, 'desc');
     });
 
     test('public helper methods support parsing and conditional mapping', () {
