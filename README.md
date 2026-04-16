@@ -146,7 +146,6 @@ final validCpf = EssentialCoreUtils.validarCPF('529.982.247-25');
 Run the same checks used in CI locally:
 
 ```bash
-dart format --output=none --set-exit-if-changed .
 dart analyze
 dart test
 dart pub publish --dry-run
@@ -159,7 +158,6 @@ The repository includes a GitHub Actions workflow at
 on pull requests. The workflow executes:
 
 - `dart pub get`
-- `dart format --output=none --set-exit-if-changed .`
 - `dart analyze`
 - `dart test`
 
