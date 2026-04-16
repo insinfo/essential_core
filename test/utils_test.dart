@@ -23,7 +23,10 @@ void main() {
     test('exposes CPF helper validations', () {
       expect(EssentialCoreUtils.blacklistedCPF('11111111111'), isTrue);
       expect(EssentialCoreUtils.blacklistedCPF('52998224725'), isFalse);
-      expect(EssentialCoreUtils.gerarDigitoVerificador([5, 2, 9, 9, 8, 2, 2, 4, 7]), 2);
+      expect(
+          EssentialCoreUtils.gerarDigitoVerificador(
+              [5, 2, 9, 9, 8, 2, 2, 4, 7]),
+          2);
     });
 
     test('validates CPF and CNPJ values', () {

@@ -12,4 +12,3 @@ export 'src/extensions/iterable_extension.dart';
 export 'src/extensions/string_extensions.dart';
 
 export 'src/utils/essential_core_utils.dart';
-
