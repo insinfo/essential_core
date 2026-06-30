@@ -11,8 +11,8 @@ helpers that can be shared across backend, frontend, and other packages.
 - `SerializeBase` for simple map-based serialization contracts.
 - `DataFrame<T>` for paginated or generic list payloads.
 - `Filter`, `FilterSearchField`, and `Filters` for query composition.
-- String and set extensions for common text and collection operations.
-- Utility helpers for parsing, validation, masking, and accent removal.
+- String and set extensions for common text, Portuguese title case, and collection operations.
+- Utility helpers for parsing, CPF/CNPJ validation, masking, e-mail validation, and accent removal.
 
 ## Installation
 
@@ -130,6 +130,63 @@ final masked = EssentialCoreUtils.hidePartsOfString('1234567890');
 final validCpf = EssentialCoreUtils.validarCPF('529.982.247-25');
 ```
 
+Validate legacy numeric and alphanumeric CNPJ values:
+
+```dart
+final validNumericCnpj =
+    EssentialCoreUtils.validarCnpj('54.550.752/0001-55');
+
+final validAlphanumericCnpj =
+    EssentialCoreUtils.validarCnpj('12ABC34501DE35');
+
+final strictCnpj =
+    EssentialCoreUtils.validarCnpj('12.ABC.345/01DE-35', strict: true);
+```
+
+Convert Portuguese text to title case while preserving connector words and
+known acronyms:
+
+```dart
+'PARCELAMENTO DE IPTU'.toPortugueseTitleCase();
+// Parcelamento de IPTU
+
+"SANTA BÁRBARA D'OESTE".toPortugueseTitleCase();
+// Santa Bárbara D'Oeste
+
+'relatório conforme norma abc'.toPortugueseTitleCase(
+  lowercaseWords: const ['conforme'],
+  acronyms: const {'abc': 'ABC'},
+);
+// Relatório conforme Norma ABC
+```
+
+Use framework-agnostic interactive input masks:
+
+```dart
+final cpfMask = InteractiveTextMask.cpf();
+
+final result = cpfMask.applyEdit(
+  oldValue: MaskedTextValue.collapsed('123'),
+  newValue: MaskedTextValue(
+    text: '1234',
+    selectionStart: 4,
+    selectionEnd: 4,
+  ),
+);
+
+result.text; // 123.4
+result.selectionStart; // 5
+result.rawText; // 1234
+```
+
+The same formatter can be adapted to browser inputs, AngularDart directives,
+Flutter text fields, terminal prompts, or server-side normalization because it
+does not import any UI or platform library.
+
+Use `applyEdit(oldValue: ..., newValue: ...)` in UI adapters that can keep the
+previous value; it handles insertion/deletion around literals more accurately.
+Use `apply(value)` or `format(text)` for simpler normalization flows.
+
 ## Public API
 
 - `DataFrame<T>`: list wrapper with serialization and conversion helpers.
@@ -137,9 +194,22 @@ final validCpf = EssentialCoreUtils.validarCPF('529.982.247-25');
 - `Filter`: generic key/operator/value filter entry.
 - `FilterSearchField`: search-field descriptor for UI and APIs.
 - `Filters`: query object with pagination, simple sorting, advanced sorting, search, and custom filters.
-- `StringExtensions` and `DiacriticsAwareString`: text normalization helpers.
+- `StringExtensions`, `DiacriticsAwareString`, and `PtTitleCase`: text normalization and Portuguese title case helpers.
 - `SetExtension`: set replacement helpers.
 - `EssentialCoreUtils`: parsing, validation, masking, and text helpers.
+- `InteractiveTextMask`, `MaskedTextValue`, `MaskedTextResult`, and `MaskToken`: framework-agnostic interactive text-mask helpers.
+
+## Benchmarks
+
+Microbenchmarks for hot-path helpers live under `benchmark/`:
+
+```bash
+dart run benchmark/cnpj_benchmark.dart
+dart run benchmark/accents_benchmark.dart
+```
+
+Use the numbers as local comparisons before and after implementation changes;
+absolute timings vary by machine and runtime conditions.
 
 ## Quality Checks
 

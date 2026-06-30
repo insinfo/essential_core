@@ -3,20 +3,30 @@ import 'dart:convert';
 import 'filter_search_field.dart';
 
 /// One sorting criterion used by [Filters].
+///
+/// Use this for multi-field sorting flows where `orderBy`/`orderDir` are not
+/// expressive enough.
 class FilterOrderField {
   /// Field identifier to sort by.
+  ///
+  /// Empty or whitespace-only values are ignored by [Filters.setOrderFields].
   final String field;
 
   /// Sort direction, usually `asc` or `desc`.
   final String direction;
 
   /// Creates a sorting criterion.
+  ///
+  /// [direction] defaults to `desc`.
   const FilterOrderField({
     required this.field,
     this.direction = 'desc',
   });
 
   /// Creates an instance from a serialized map.
+  ///
+  /// Values are converted with `toString()` when present. Missing [direction]
+  /// defaults to `desc`.
   factory FilterOrderField.fromMap(Map<String, dynamic> map) {
     return FilterOrderField(
       field: map['field']?.toString() ?? '',
@@ -34,6 +44,30 @@ class FilterOrderField {
 }
 
 /// Generic pagination, search, sorting, and custom filter model.
+///
+/// [Filters] is designed as a transport object for list APIs. It can be built
+/// in UI code, serialized into query parameters with [getParams], reconstructed
+/// from a map with [Filters.fromMap], and extended with domain-specific
+/// [additionalFilters].
+///
+/// Simple sorting (`orderBy`/`orderDir`) and advanced sorting ([orderFields])
+/// are intentionally independent. Use one or both according to the endpoint
+/// contract; setting one does not mutate the other.
+///
+/// Example:
+///
+/// ```dart
+/// final filters = Filters(
+///   limit: 20,
+///   offset: 0,
+///   searchString: 'ana',
+///   orderBy: 'name',
+///   orderDir: 'asc',
+///   additionalFilters: {'active': true},
+/// );
+///
+/// final params = filters.getParams();
+/// ```
 class Filters {
   /// Map key used for [limit].
   static const kLimit = 'limit';
@@ -60,6 +94,10 @@ class Filters {
   static const kSearchInFields = 'searchInFields';
 
   /// Keys reserved by the core filtering model.
+  ///
+  /// When [fillFromMap] receives unknown keys, they are copied to
+  /// [additionalFilters]. Keys in this set are handled by the core model and
+  /// are not treated as custom filters.
   static const Set<String> reservedKeys = <String>{
     kLimit,
     kOffset,
@@ -72,24 +110,35 @@ class Filters {
   };
 
   /// Maximum number of items to request.
+  ///
+  /// Set to `null` to omit the limit from [toMap].
   int? limit = 12;
 
   /// Starting offset for pagination.
+  ///
+  /// Set to `null` to omit the offset from [toMap].
   int? offset = 0;
 
   /// Free-text query.
+  ///
+  /// Use [searchInFields] to describe which fields should receive this value.
   String? searchString;
 
-  /// Field name used for sorting.
+  /// Field name used for simple single-field sorting.
   String? orderBy;
 
   /// Sort direction, usually `asc` or `desc`.
   String? orderDir = 'desc';
 
   /// Ordered list of sorting criteria.
+  ///
+  /// Values are serialized as a JSON string by [toMap] to make HTTP query
+  /// parameter transport straightforward.
   List<FilterOrderField> orderFields = <FilterOrderField>[];
 
   /// Fields that should receive [searchString].
+  ///
+  /// Values are serialized as a JSON string by [toMap].
   List<FilterSearchField> searchInFields = <FilterSearchField>[];
 
   /// Arbitrary custom filters that should travel with the query model.
@@ -113,7 +162,10 @@ class Filters {
   /// Whether custom additional filters are present.
   bool get hasAdditionalFilters => additionalFilters.isNotEmpty;
 
-  /// Creates a filter model and normalizes the current sorting state.
+  /// Creates a filter model.
+  ///
+  /// List and map arguments are defensively copied so later changes to the
+  /// constructor arguments do not mutate this object.
   Filters({
     this.limit = 12,
     this.offset = 0,
@@ -130,11 +182,16 @@ class Filters {
             : <String, dynamic>{};
 
   /// Creates a [Filters] object from a serialized map.
+  ///
+  /// The map may contain normal Dart values or JSON-encoded strings for
+  /// [orderFields], [searchInFields], and [additionalFilters].
   Filters.fromMap(Map<String, dynamic> map) {
     fillFromMap(map);
   }
 
   /// Copies all values from another [Filters] instance.
+  ///
+  /// Mutable collections are copied, not shared.
   void fillFromFilters(Filters filters) {
     limit = filters.limit;
     offset = filters.offset;
@@ -147,6 +204,8 @@ class Filters {
   }
 
   /// Replaces the sorting criteria list.
+  ///
+  /// Entries with blank [FilterOrderField.field] values are discarded.
   void setOrderFields(List<FilterOrderField> fields) {
     orderFields = List<FilterOrderField>.from(
       fields.where((field) => field.field.trim().isNotEmpty),
@@ -154,23 +213,28 @@ class Filters {
   }
 
   /// Adds [key] to [map] only when [value] is not `null`.
+  ///
+  /// This helper is public for compatibility with older consumers.
   void addToMapIfNotNull(Map<String, dynamic> map, String key, dynamic value) {
     if (value != null) {
       map[key] = value;
     }
   }
 
-  /// Adds a search target field.
+  /// Adds a search target field to [searchInFields].
   void addSearchInField(FilterSearchField filterSearchField) {
     searchInFields.add(filterSearchField);
   }
 
   /// Sets or replaces a custom filter entry.
+  ///
+  /// Custom filters are flattened into [toMap] unless their key collides with a
+  /// reserved key.
   void setAdditionalFilter(String key, dynamic value) {
     additionalFilters[key] = value;
   }
 
-  /// Removes a custom filter entry.
+  /// Removes a custom filter entry when present.
   void removeAdditionalFilter(String key) {
     additionalFilters.remove(key);
   }
@@ -214,6 +278,9 @@ class Filters {
   }
 
   /// Converts this object into a string-only query-parameter map.
+  ///
+  /// This is useful for HTTP clients that require `Map<String, String>` query
+  /// parameters. Complex values are already JSON-encoded by [toMap].
   Map<String, String> getParams() {
     return toMap().map((key, value) => MapEntry(key, value.toString()));
   }
@@ -270,6 +337,8 @@ class Filters {
   }
 
   /// Parses sorting criteria from a JSON string or a list of maps.
+  ///
+  /// Invalid, empty, or unsupported inputs return an empty list.
   List<FilterOrderField> parseOrderFields(dynamic rawValue) {
     if (rawValue is String && rawValue.trim().isNotEmpty) {
       final decoded = jsonDecode(rawValue);
@@ -294,6 +363,8 @@ class Filters {
   }
 
   /// Parses custom filter values from a map or a JSON-encoded map.
+  ///
+  /// Invalid, empty, or unsupported inputs return an empty map.
   Map<String, dynamic> parseAdditionalFilters(dynamic rawValue) {
     if (rawValue is Map) {
       return Map<String, dynamic>.from(rawValue);
@@ -308,6 +379,8 @@ class Filters {
   }
 
   /// Converts [value] into an `int` when possible.
+  ///
+  /// Only `int` values and strings accepted by [int.tryParse] are converted.
   int? toNullableInt(dynamic value) {
     if (value == null) {
       return null;
@@ -322,6 +395,9 @@ class Filters {
   }
 
   /// Reads a boolean value from [map] using [key] when present.
+  ///
+  /// The string `true`, ignoring case, maps to `true`; any other present value
+  /// maps to `false`.
   bool? toNullableBool(Map<String, dynamic> map, String key) {
     if (map.containsKey(key) && map[key] != null) {
       return map[key].toString().toLowerCase() == 'true';
