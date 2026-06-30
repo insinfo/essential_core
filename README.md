@@ -20,7 +20,7 @@ Add the package to your project:
 
 ```yaml
 dependencies:
-  essential_core: ^1.2.0
+  essential_core: ^1.4.0
 ```
 
 Then install dependencies:
@@ -128,6 +128,44 @@ final normalized = 'Informação Útil'.withoutAccents;
 final contains = 'Essential Core'.containsIgnoreCase('core');
 final masked = EssentialCoreUtils.hidePartsOfString('1234567890');
 final validCpf = EssentialCoreUtils.validarCPF('529.982.247-25');
+```
+
+Sanitize, format, generate, and validate CPF/CNPJ values:
+
+```dart
+final cpf = EssentialCoreUtils.gerarCpf();
+final formattedCpf = EssentialCoreUtils.formatarCpf(cpf);
+final rawCpf = EssentialCoreUtils.sanitizarCpf(formattedCpf);
+
+final cnpj = EssentialCoreUtils.gerarCnpj(alfanumerico: true);
+final formattedCnpj = EssentialCoreUtils.formatarCnpj(cnpj);
+final rawCnpj = EssentialCoreUtils.sanitizarCnpj(formattedCnpj);
+```
+
+Mask documents for federal-style public display:
+
+```dart
+EssentialCoreUtils.mascararCpfGovernoFederal('123.456.789-10');
+// ***.456.789-**
+
+EssentialCoreUtils.mascararCnpjGovernoFederal('54.550.752/0001-55');
+// 54.550.752/0001-55
+
+EssentialCoreUtils.mascararDocumentoGovernoFederal('12345678910');
+// ***.456.789-**
+```
+
+Use generic platform-agnostic helpers:
+
+```dart
+final options = EssentialCoreUtils.mergeDefaults(
+  {'limit': 20},
+  {'limit': 12, 'offset': 0},
+);
+
+final enabled = EssentialCoreUtils.parseBoolLoose('sim');
+final safeHtml = EssentialCoreUtils.escapeHtml('<b>Ana & Bia</b>');
+final email = EssentialCoreUtils.normalizeEmail('Some.One+Tag@GoogleMail.com');
 ```
 
 Validate legacy numeric and alphanumeric CNPJ values:

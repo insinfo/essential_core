@@ -1,3 +1,11 @@
+## 1.4.0
+
+- Added public CPF/CNPJ helpers for sanitizing, formatting, and generating valid document values.
+- Added federal-style public display masking helpers for CPF and CNPJ documents.
+- Added platform-agnostic generic utility helpers for hashing, map defaults, string coercion, boolean parsing, character filtering, HTML escaping, and e-mail normalization.
+- Centralized nullable boolean parsing in `EssentialCoreUtils` and kept `Filters` conversion helpers as compatibility wrappers.
+- Added additional CPF/CNPJ validation coverage, including known valid/invalid CPF and numeric CNPJ examples plus Receita Federal alphanumeric CNPJ samples.
+
 ## 1.3.0
 
 - Updated `EssentialCoreUtils.validarCnpj` to support the Receita Federal alphanumeric CNPJ check-digit rules while preserving numeric CNPJ validation.

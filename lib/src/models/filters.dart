@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'filter_search_field.dart';
+import '../utils/essential_core_utils.dart';
 
 /// One sorting criterion used by [Filters].
 ///
@@ -382,16 +383,7 @@ class Filters {
   ///
   /// Only `int` values and strings accepted by [int.tryParse] are converted.
   int? toNullableInt(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-    if (value is int) {
-      return value;
-    }
-    if (value is String) {
-      return int.tryParse(value);
-    }
-    return null;
+    return EssentialCoreUtils.toNullableInt(value);
   }
 
   /// Reads a boolean value from [map] using [key] when present.
@@ -399,20 +391,11 @@ class Filters {
   /// The string `true`, ignoring case, maps to `true`; any other present value
   /// maps to `false`.
   bool? toNullableBool(Map<String, dynamic> map, String key) {
-    if (map.containsKey(key) && map[key] != null) {
-      return map[key].toString().toLowerCase() == 'true';
-    }
-    return null;
+    return EssentialCoreUtils.toNullableBool(map, key);
   }
 
   /// Returns [value] when it is already a `String`.
   String? toNullableString(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-    if (value is String) {
-      return value;
-    }
-    return null;
+    return EssentialCoreUtils.toNullableString(value);
   }
 }
